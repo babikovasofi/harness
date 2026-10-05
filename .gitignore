@@ -1,0 +1,5 @@
+# Per-session hook state (loop-guard counters) — never commit
+.claude/sessions/
+
+# OS cruft
+.DS_Store
