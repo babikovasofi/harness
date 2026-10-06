@@ -24,6 +24,8 @@ main loop.
    Prompt each:
    > Answer in caveman mode (full). Read `.claude/agents/<scope>.md` and follow it exactly.
    > Plan: swarm-report/<slug>-plan.md. Your scope: <the files for this agent>.
+   > Any end-user text you write (bot messages, UI strings, error texts, docs) → follow
+   > `.claude/skills/anti-ai-slop-writing/SKILL.md` (+ `references/ru-checklist.md` for Russian).
    If one agent's output changes a contract another needs (e.g. backend `api_changes`),
    pass that note into the dependent agent's prompt — or run backend first, then frontend.
 5. **Verify**: read each agent's `tests_result`. Any `status: blocked` or failing test →

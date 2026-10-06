@@ -50,6 +50,7 @@ Two work modes. Pick by the user's words:
   - body (optional): blank line after the subject, explains *why*.
   - breaking change: `!` after type/scope (`feat(api)!: ...`) + `BREAKING CHANGE:` footer.
 - **PR title** = a Conventional Commit subject. PR body: what changed, why, how tested.
+- Commit bodies and PR text follow `/anti-ai-slop-writing` (see Working agreement).
 - **Before every push** (incl. opening a PR, which pushes the branch) — show a short,
   clear list and ask right away, in the same message:
   ```
@@ -130,6 +131,13 @@ fit each project's real layout.
   - **Decision log.** Every user answer that settles something goes to
     `.memory-bank/decisions.md`: `<YYYY-MM-DD> · context · choice · why`. Create the file on
     first use. Already decided there → do not ask again, follow it.
+- **Human-facing text → anti-AI-slop.** Whenever you write prose a person will read
+  outside this chat, first read `.claude/skills/anti-ai-slop-writing/SKILL.md` +
+  `references/banned-words.md`, and for Russian text also `references/ru-checklist.md`.
+  Applies to: commit bodies, PR titles/bodies, README / docs, reports the user reads
+  (`swarm-report/night-<date>.md`, review/build summaries), product copy (bot messages,
+  UI strings, end-user error texts). Does not apply to: chat replies and agent returns
+  (caveman), code, YAML agent outputs, logs.
 - **Caveman always.** Every agent and every subagent answers in `/caveman` (full): drop
   articles / filler / pleasantries / hedging, fragments OK, keep every technical fact
   exact. Subagents do not inherit this file — each `.claude/agents/*.md` repeats the rule,

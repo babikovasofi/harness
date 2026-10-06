@@ -61,7 +61,8 @@ Result: ✅ done | ❌ rolled back (<reason>) | ⏭ skipped (<blocker>)
 
 ## Morning report — `swarm-report/night-<date>.md`
 
-Written when the user's tasks are done, or on `/night-stop`:
+Written when the user's tasks are done, or on `/night-stop`. Human-facing: follow
+`.claude/skills/anti-ai-slop-writing/SKILL.md` (+ `references/ru-checklist.md` if in Russian).
 - Branch, work window, tasks done / total.
 - **Done**: commits (hash · task · criterion met).
 - **Rolled back / skipped**: what and why.
