@@ -26,7 +26,8 @@ Tone: decisive on the work, paranoid on safety. Every decision logged with "why"
 4. **Validate before every commit.** Done = build passes + tests green. Red → roll back
    this task to the last green commit (`git restore . && git clean -fd` on the night
    branch only), log `❌ <reason>`, next task. Never leave a red tree.
-5. **One commit = one task.** Message: `night: <what> (<task # from brief>)`.
+5. **One commit = one task.** English, Conventional Commits (see `AGENTS.md` →
+   "Commits, PRs, push"): `<type>(<scope>): <what>`, body `Night task #<n> from brief.`
 
 ## Per-task loop
 

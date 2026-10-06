@@ -39,6 +39,29 @@ Two work modes. Pick by the user's words:
 | Git | Current branch | Own branch `night/<slug>-<ts>` from `main`, local commits, no push |
 | End | — | Report `swarm-report/night-<date>.md`; `/night-stop` stops early |
 
+## Commits, PRs, push
+
+- **English only** — commit messages, PR titles and bodies, branch names.
+- **Conventional Commits** (https://www.conventionalcommits.org):
+  `<type>(<optional scope>): <description>`
+  - types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`,
+    `chore`, `revert`.
+  - description: imperative, lowercase start, no trailing period, ≤72 chars for the line.
+  - body (optional): blank line after the subject, explains *why*.
+  - breaking change: `!` after type/scope (`feat(api)!: ...`) + `BREAKING CHANGE:` footer.
+- **PR title** = a Conventional Commit subject. PR body: what changed, why, how tested.
+- **Before every push** (incl. opening a PR, which pushes the branch) — show a short,
+  clear list and ask right away, in the same message:
+  ```
+  Push: <branch> → <remote>/<branch>
+  Commits:
+  - <hash> <subject>
+  - ...
+  Files: <N changed, +X / −Y>
+  ```
+  Then `AskUserQuestion`: "Пушить?" — options "Да, пушить" / "Нет, не пушить".
+  Push only after an explicit yes. Never force-push without a separate explicit yes.
+
 ## Agents
 
 ### Consilium (plan + review + debug — diagnose, don't bulk-edit)
