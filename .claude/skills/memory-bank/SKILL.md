@@ -9,7 +9,8 @@ when_to_use: >
   After every chat interaction that may alter stable project knowledge:
   architecture decisions, API contracts, conventions, stack changes, new tasks.
   Skip for local implementation details, temporary experiments, minor refactors,
-  and style-only changes.
+  and style-only changes. In this harness it runs at the end of every reply of the
+  main agent, without being asked (AGENTS.md → Memory Bank Steward).
 applies_to: Claude Code, Cursor, Codex
 language: en
 ---

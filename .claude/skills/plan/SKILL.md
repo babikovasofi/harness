@@ -1,6 +1,7 @@
 ---
 name: plan
 description: Design a feature before writing code. Spawns the planner + skeptic subagents that read the Memory Bank, argue, and write a plan to swarm-report/ with every file mapped to its exec agent. Use BEFORE /build, for any feature touching 2+ files or with unclear scope. Skip for typos and one-line fixes.
+when_to_use: "Invoke without being asked for any new feature or change touching 2+ files: «спланируй», «давай сделаем», «добавь фичу», «как будем делать», «нужно реализовать». Usually run from /day."
 ---
 
 # Skill: /plan

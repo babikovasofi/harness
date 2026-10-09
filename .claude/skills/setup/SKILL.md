@@ -2,6 +2,7 @@
 name: setup
 description: Install this harness into a target project. Copies AGENTS.md, the consilium agents, all skills (except setup), hooks, harness templates, scripts, settings (merged), .mcp.json (merged), .env.example and .gitignore lines, then seeds an empty Memory Bank and swarm-report/. Links AGENTS.md from an existing CLAUDE.md. Run this from a clone of the harness repo — pass the absolute path to the project you want to equip.
 argument-hint: "<absolute-path-to-target-project>"
+when_to_use: "Invoke when the user says «поставь харнесс в проект <путь>», «установи харнесс», «подключи харнесс к проекту». Only from the harness repo."
 ---
 
 # Skill: /setup
@@ -51,7 +52,8 @@ chmod +x "$DST"/.claude/skills/transcribe/scripts/run.sh
 ## Step 3 — Merge, never clobber
 
 - **`.claude/settings.json`** — absent → copy. Present → merge with `jq`: for every hook
-  event in ours (`SessionStart`, `SubagentStart`, `SubagentStop`, `PreToolUse`, `Stop`)
+  event in ours (`SessionStart`, `UserPromptSubmit`, `SubagentStart`, `SubagentStop`,
+  `PreToolUse`, `Stop`)
   add our entries, dedupe by `command`; union `permissions.deny`. Keep all their keys.
   Verify the result parses (`jq . file`).
 - **`.mcp.json`** — absent → copy. Present → add `mcpServers."tavily-research"` only if

@@ -1,6 +1,7 @@
 ---
 name: review
 description: Review a finished change against its plan. Spawns the reviewer subagent (read-only tools), reports ship/rework with severity-tagged findings. Use AFTER /build.
+when_to_use: "Invoke after every /build, and when the user says «проверь код», «ревью», «посмотри изменения», «готово к мержу?», «review»."
 ---
 
 # Skill: /review

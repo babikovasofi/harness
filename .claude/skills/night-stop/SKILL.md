@@ -1,6 +1,7 @@
 ---
 name: night-stop
 description: Stop night mode early and get the morning report. Adapted from coordinator-yolo-stop. Use when the user wakes up / wants to stop the night run and see what was done (interrupt the run with Esc first, then /night-stop).
+when_to_use: "Invoke when the user says «стоп ночь», «останови ночную работу», «я проснулась», «я проснулся», «что сделал за ночь» during or after a night run."
 ---
 
 # Skill: /night-stop

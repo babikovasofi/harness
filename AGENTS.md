@@ -28,7 +28,28 @@ Around the loop:
 - `/new-agent <stack>` — onboard a stack-specific executing agent (see "Agents").
 - `/memory-bank` (Steward), `/memory-bank-defrag` — keep `.memory-bank/` current.
 - `/transcribe <file>` — local meeting transcript with speaker labels.
-- `/anti-ai-slop-writing` — rules for any text a human reads outside the chat.
+- `/anti-ai-slop-writing` — rules for every text a human reads, chat included.
+
+## Skills fire by themselves
+
+The user talks normally; nobody has to type a slash command. Match the request to a skill
+and invoke it (Skill tool) without being asked. The `prompt-router.sh` hook repeats this map
+on every prompt and names the likely skill when the words clearly match.
+
+| User says / situation | Skill |
+|---|---|
+| Any task with no mode word: «сделай», «добавь», «исправь», «переделай» | `/day` → `/plan` → `/build` → `/review` |
+| «ночь», «работаем ночью», «пока я сплю» | `/night` |
+| «стоп ночь», «я проснулась», «что сделал за ночь» | `/night-stop` |
+| «не работает», «ошибка», «упал тест», a stack trace | `/debug` |
+| «проверь код», «ревью», «готово к мержу?» | `/review` |
+| «ресеч», «исследуй», «найди информацию про», «сравни» | `/research` |
+| An audio / video file, «расшифруй запись» | `/transcribe` |
+| «агент под <стек>», unowned files, a new manifest in the repo | `/new-agent` |
+| «почисти memory bank», end of every night | `/memory-bank-defrag` |
+| «поставь харнесс в проект <путь>» (harness repo only) | `/setup` |
+| Writing any text for people | `/anti-ai-slop-writing` (always on) |
+| End of every reply | Memory Bank Steward check |
 
 ## Modes: day and night
 
@@ -119,7 +140,9 @@ A file no agent covers → `/plan` lists it under Blockers; the user picks `/new
 | SubagentStart | `subagent-greeting.sh` | Greeting + exec contract (see Onboarding) |
 | SubagentStop | `exec-return-check.sh` | Exec agents must return the contract YAML |
 | PreToolUse (Bash) | `guard.sh` | Blocks commands touching `.env`, printing the Tavily key, any force-push; at night any push except `memory-defrag/*` and PR merges |
+| UserPromptSubmit | `prompt-router.sh` | Every prompt: always-on writing rules + intent → skill map, "likely skill" hint |
 | Stop | `test-gate.sh` | Code edited but no tests run → not done |
+| Stop | `slop-gate.sh` | Answer with ≥ 2 AI-text markers (outside code and quotes) → one rewrite |
 
 Plus `permissions.deny: Read(.env)` so file tools cannot read secrets.
 
@@ -165,13 +188,19 @@ Plus `permissions.deny: Read(.env)` so file tools cannot read secrets.
   "Применить?" question goes into the next checkpoint form, not mid-work. Apply only after
   yes. Never write secrets. Night: do not touch `.memory-bank/`, suggestions go into the
   morning report.
-- **Human-facing text → anti-AI-slop.** Whenever you write prose a person will read
-  outside this chat, first read `.claude/skills/anti-ai-slop-writing/SKILL.md` +
-  `references/banned-words.md`, and for Russian text also `references/ru-checklist.md`.
-  Applies to: commit bodies, PR titles/bodies, README / docs, reports the user reads
-  (`swarm-report/night-<date>.md`, review/build summaries), product copy (bot messages,
-  UI strings, end-user error texts). Does not apply to: chat replies and agent returns
-  (caveman), code, YAML agent outputs, logs.
+- **Anti-AI-slop, always on.** Every text a person reads follows
+  `.claude/skills/anti-ai-slop-writing/SKILL.md` — nobody has to ask for it.
+  - **Chat replies:** caveman compression stays; on top, the skill's bans (banned words and
+    phrases, AI openers / closers, fake balance, hedging stacks, em dash at most 1 per 500
+    words, emoji bullets, канцелярит, invented specifics). Rhythm rules do not apply to
+    caveman.
+  - **Prose** — reports (`swarm-report/night-<date>.md`, summaries), README / docs, commit
+    bodies, PR text, bot copy, UI strings: the whole skill; Russian → also
+    `references/ru-checklist.md`.
+  - **Text inside code** — comments, docstrings, error / log messages, UI strings: the whole
+    skill + `references/code-text.md`.
+  - Not prose: identifiers, YAML agent returns, raw logs.
+  - The Stop hook `slop-gate.sh` sends an answer with AI markers back for one rewrite.
 - **Caveman always.** Every agent and every subagent answers in `/caveman` (full): drop
   articles / filler / pleasantries / hedging, fragments OK, keep every technical fact
   exact. Subagents get the rule from the SubagentStart greeting. Code, commits, PRs:

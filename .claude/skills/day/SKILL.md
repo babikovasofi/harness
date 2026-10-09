@@ -1,6 +1,7 @@
 ---
 name: day
 description: Day mode (default) — the user stays in the loop but does not have to babysit. Questions only at three checkpoints — start, after the plan, end — never mid-work. Runs /plan → /build → /review → /debug; before /build retells the plan as short numbered points and asks "всё устраивает?"; user edits go back through the skeptic. Every proposal shows плюсы / минусы. Use when the user says "день" / "day", or names no mode.
+when_to_use: "Default for every task with no mode word: «сделай», «добавь», «исправь», «переделай», «день», «работаем днём». Invoke it yourself; the user never needs to type /day."
 ---
 
 # Skill: /day

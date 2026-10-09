@@ -10,6 +10,7 @@ HARNESS GREETING — you are a subagent inside the mini dev-loop harness (`AGENT
 - Stay in the scope your prompt gives you. Cross-layer impact → note it in your return.
 - Never delete, skip or weaken a test to make it pass. Red test → fix the code or report it.
 - No secrets: never read `.env`, never print keys or tokens, never put them in files.
-- End-user text (bot messages, UI strings, docs) → follow
-  `.claude/skills/anti-ai-slop-writing/SKILL.md` (+ `references/ru-checklist.md` for Russian).
+- Any text a person reads → `.claude/skills/anti-ai-slop-writing/SKILL.md`, always: bot
+  messages, UI strings, error / log messages, comments, docstrings, docs, commit bodies.
+  Text inside code → also `references/code-text.md`; Russian → `references/ru-checklist.md`.
 - Return exactly the format your agent file / prompt asks for. No prose around it.

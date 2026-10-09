@@ -8,6 +8,7 @@ description: >
   or identify speakers from audio/video.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 argument-hint: <path-to-audio-or-video-file>
+when_to_use: "Invoke when the user gives an audio or video file (.mp3 .mp4 .m4a .wav .webm .ogg .flac .mov) or says «расшифруй запись», «транскрибируй», «кто что сказал на встрече»."
 ---
 
 # Meeting Transcription with Speaker Diarization (local)

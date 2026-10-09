@@ -1,11 +1,24 @@
 ---
 name: anti-ai-slop-writing
-description: Produces text that avoids statistically detectable AI writing patterns. Apply to tweets, emails, articles, reports, messages, cover letters, any human-facing prose. Trigger when user asks to write, draft, edit, or rewrite copy for humans (especially marketing, social, outreach, candidate-facing) and wants it to not read as AI-generated. Loads banned-words list from references/banned-words.md.
+description: Always-on writing rules against detectable AI patterns. In this harness it applies to EVERY text a person reads — chat replies to the user, reports, README/docs, commit bodies, PR text, bot messages, UI strings, error messages, code comments and docstrings. Load it whenever you write or edit any such text, without being asked; also when the user says "напиши текст/пост/письмо/сообщение", "перепиши", "сделай текст для бота", "write/draft/rewrite". Loads references/banned-words.md, references/ru-checklist.md for Russian, references/code-text.md for text inside code.
+when_to_use: "Always, for every text a person will read: chat replies, docs, reports, commit/PR text, bot copy, UI strings, error messages, comments. Explicitly also on «напиши текст», «перепиши», «пост», «письмо», «сообщение для бота»."
 ---
 
 # Anti-AI-Slop Writing Directive v2
 
 Produces text that avoids statistically detectable AI writing patterns. Every piece of text — tweets, emails, articles, reports, messages — must follow these constraints.
+
+## Where this applies in the harness (always on)
+
+Nobody has to ask for this skill: the UserPromptSubmit hook reminds every turn, the Stop
+hook `slop-gate.sh` sends an answer with AI markers back for one rewrite.
+
+| Text | What applies |
+|------|--------------|
+| Chat replies to the user | Caveman compression stays (fragments are fine). On top: no banned words/phrases, no AI openers/closers, no fake balance, no hedging stacks, em dash at most 1 per 500 words, no emoji bullets, no канцелярит, concrete names/numbers, no invented specifics. Rhythm rules (sentence-length variety, no parataxis) do not apply — caveman is terse on purpose. |
+| Reports, README, docs, PR text, commit bodies, bot copy, UI strings | The whole skill. Russian → also [references/ru-checklist.md](references/ru-checklist.md). |
+| Comments, docstrings, error/log messages, UI strings in code | The whole skill + [references/code-text.md](references/code-text.md). |
+| Code identifiers, YAML agent returns, raw logs | Not prose — skip. |
 
 ## Before Writing Anything
 

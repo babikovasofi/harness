@@ -1,6 +1,7 @@
 ---
 name: night
 description: Night mode — the user hands over tasks and goes to sleep. All questions come first (clarify with reasonable options, permission mode, then the night brief and the user's OK); after that it works autonomously with no questions — each task through /plan → /build → /review → /debug in a night/ branch inside its own git worktree, local commits only. At the end runs /memory-bank-defrag (its own branch + PR, the only push) and writes a morning report with everything it decided alone. Use when the user says "ночь" / "работаем ночью" / "night". Stop early with /night-stop.
+when_to_use: "Invoke when the user says «ночь», «работаем ночью», «оставлю на ночь», «сделай пока я сплю», «night»."
 ---
 
 # Skill: /night

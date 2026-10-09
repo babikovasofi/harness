@@ -1,6 +1,7 @@
 ---
 name: debug
 description: Find the root cause of a bug or failing test. Spawns the debugger subagent that reproduces with a red test first, ladders hypotheses, isolates with evidence, and applies the minimal fix. Use when a test fails, /build reports blocked, or "X stopped working". Does NOT design features (that's /plan).
+when_to_use: "Invoke when something breaks: «не работает», «ошибка», «упал тест», «падает», «баг», a pasted stack trace or error text, /build reports blocked or failing tests."
 ---
 
 # Skill: /debug

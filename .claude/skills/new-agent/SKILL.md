@@ -2,6 +2,7 @@
 name: new-agent
 description: Onboard a new stack-specific executing agent into the harness. Asks (once, at the start) for stack, file scope and test command, creates .claude/agents/<name>.md from the template with the exec marker, validates its frontmatter and registers it in the "Executing agents" table of AGENTS.md so /plan and /build route files to it. Use when the user says "добавь агента под <stack>", "new agent", or /plan reports unowned files.
 argument-hint: "<stack, e.g. python-fastapi>"
+when_to_use: "Invoke when the user says «добавь агента под <стек>», «новый исполнитель», when /plan reports unowned files, or when a new stack shows up in the repo (new manifest such as pyproject.toml or package.json)."
 ---
 
 # Skill: /new-agent

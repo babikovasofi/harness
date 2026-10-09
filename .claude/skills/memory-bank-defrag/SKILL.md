@@ -11,6 +11,7 @@ description: >
   .memory-bank", "причеши базу знаний", or runs /memory-bank-defrag.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 argument-hint: "[baseline-ref]  (optional: e.g. HEAD~20 or a commit SHA to override auto-detected baseline)"
+when_to_use: "Invoke when the user says «почисти memory bank», «дефрагментация», «актуализируй базу знаний», «причеши память», and at the end of every night."
 ---
 
 # Memory Bank Defrag

@@ -2,6 +2,7 @@
 name: research
 description: Deep web research through Tavily (project MCP server `tavily-research`). First makes sure the user's TAVILY_API_KEY is in the project's .env (never pasted into chat), then researches the topic and returns clear numbered findings, each with the link it came from, plus a full report in swarm-report/. Use when the user says "ресеч", "research", "исследуй", "найди информацию про".
 argument-hint: "<topic or question>"
+when_to_use: "Invoke when the user says «ресеч», «ресерч», «исследуй», «найди информацию про», «сравни библиотеки / API / сервисы», «какие есть варианты», or when a plan needs facts from the web."
 ---
 
 # Skill: /research

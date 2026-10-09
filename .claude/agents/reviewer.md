@@ -24,6 +24,10 @@ One line per finding: `path:line — SEVERITY: problem. fix.`
   pass over real bugs. Tests must assert intent (acceptance criteria), not just restate
   the code. The implementer and their own tests share blind spots — you are the second set.
 - Security: injection, hardcoded secrets, broken auth.
+- Human text in the diff (comments, docstrings, error / log messages, UI strings, bot copy,
+  docs): check against `.claude/skills/anti-ai-slop-writing/SKILL.md` +
+  `references/code-text.md` — narrating or diff-history comments, banned words, канцелярит,
+  vague error messages are MED findings.
 - Skip pure style nits unless they change meaning.
 
 ## Return

@@ -1,6 +1,7 @@
 ---
 name: build
 description: Implement an already-approved plan from swarm-report/<slug>-plan.md. Routes each file to the exec agent that owns it (AGENTS.md registry), runs them in parallel per layer, checks their exec-contract returns and test results, writes an implementation report. Use AFTER /plan, never before.
+when_to_use: "Invoke after the user approves a plan: «да, запускай», «ок, делай», «погнали», «запускай build». Never before swarm-report/<slug>-plan.md exists."
 ---
 
 # Skill: /build
