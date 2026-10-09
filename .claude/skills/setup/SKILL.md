@@ -1,71 +1,83 @@
 ---
 name: setup
-description: Install this mini dev-loop harness into a target project. Copies the agents, skills (plan/build/review/debug), the test-gate hook, settings, and AGENTS.md into the given project path, then seeds a Memory Bank index if none exists. Run this from a clone of the harness repo — pass the absolute path to the project you want to equip.
+description: Install this harness into a target project. Copies AGENTS.md, the consilium agents, all skills (except setup), hooks, harness templates, scripts, settings (merged), .mcp.json (merged), .env.example and .gitignore lines, then seeds an empty Memory Bank and swarm-report/. Links AGENTS.md from an existing CLAUDE.md. Run this from a clone of the harness repo — pass the absolute path to the project you want to equip.
+argument-hint: "<absolute-path-to-target-project>"
 ---
 
 # Skill: /setup
 
 Install the harness into another project. You run in a clone of the harness repo; the
-target is a different directory the user names.
+target is a different directory the user names. This skill only moves and merges files:
+no build, no user code edits.
 
 ## Invocation
 `/setup <absolute-path-to-target-project>`
 
-If no path is given, ask for one. Do not guess.
+## Step 1 — Checks and the one question form (start checkpoint)
 
-## Steps
+1. `SRC` = this harness repo root (`$CLAUDE_PROJECT_DIR`). `DST` = the argument, `~`
+   expanded. No argument → ask for it. `DST` missing / not a directory → abort:
+   "Target `<path>` not found — give the absolute path to your project." `DST` = `SRC` →
+   refuse.
+2. Collect every conflict first, then ask once (`AskUserQuestion`, плюсы / минусы per
+   option) — never in the middle of copying:
+   - `DST` not a git repo → offer `git init`.
+   - `DST/AGENTS.md` exists → overwrite / keep theirs and append ours under a heading /
+     skip.
+   - `DST/CLAUDE.md` (or `CLAUDE.local.md`) exists without `@AGENTS.md` → add the line
+     `@AGENTS.md` at its top? (Claude Code reads only `CLAUDE.md` when both exist.)
+   - `DST/.claude/agents/<name>.md` exists with the same name as ours → overwrite / skip.
+3. Dependencies (warn, do not block): `jq` (hooks), `git`, `gh` (night defrag PR),
+   `node`/`npx` (Tavily MCP), Python 3.11–3.13 + `ffmpeg` (transcribe).
 
-1. **Resolve paths.**
-   - `SRC` = this harness repo root (`$CLAUDE_PROJECT_DIR`).
-   - `DST` = the path argument. Expand `~`. Abort if it does not exist or is not a
-     directory: "Target `<path>` not found — give the absolute path to your project."
-   - Refuse if `DST` equals `SRC` (don't install the harness into itself).
+## Step 2 — Copy
 
-2. **Git check.** If `DST` is not a git repo (`git -C "$DST" rev-parse` fails), tell the
-   user and offer to `git init` it. Do not init without a yes.
+```bash
+mkdir -p "$DST/.claude/agents" "$DST/.claude/skills" "$DST/.claude/hooks" \
+         "$DST/.claude/harness" "$DST/.claude/scripts" "$DST/swarm-report"
+cp "$SRC"/.claude/agents/*.md "$DST/.claude/agents/"            # consilium only in SRC
+for s in "$SRC"/.claude/skills/*/; do
+  n=$(basename "$s"); [ "$n" = setup ] && continue              # target never re-installs
+  rm -rf "$DST/.claude/skills/$n" && cp -R "$s" "$DST/.claude/skills/$n"
+done
+cp "$SRC"/.claude/hooks/*.sh "$DST/.claude/hooks/"   && chmod +x "$DST"/.claude/hooks/*.sh
+cp "$SRC"/.claude/harness/*  "$DST/.claude/harness/"
+cp "$SRC"/.claude/scripts/*  "$DST/.claude/scripts/" && chmod +x "$DST"/.claude/scripts/*.sh
+chmod +x "$DST"/.claude/skills/transcribe/scripts/run.sh
+[ -f "$DST/swarm-report/.gitkeep" ] || touch "$DST/swarm-report/.gitkeep"
+```
+`AGENTS.md` and `CLAUDE.md` — per the answers from step 1.
 
-3. **Copy the harness files** into `DST` (create parent dirs as needed):
-   - `AGENTS.md`
-   - `.claude/agents/` — the whole directory.
-   - `.claude/skills/plan`, `.claude/skills/build`, `.claude/skills/review`,
-     `.claude/skills/debug`, `.claude/skills/design-cover`, `.claude/skills/visual-verify`
-     — but NOT `.claude/skills/setup` (the target never re-installs).
-   - `.claude/hooks/test-gate.sh` and `.claude/hooks/visual-gate.sh` — then `chmod +x` both.
-   - `.claude/design-gate.json.example` — the example only. The real
-     `.claude/design-gate.json` is the project's to write (`/design-cover` writes it), and
-     until it exists the visual gate is inert.
-   - `swarm-report/` — create it with a `.gitkeep`.
-   Example:
-   ```bash
-   mkdir -p "$DST/.claude/agents" "$DST/.claude/skills" "$DST/.claude/hooks" "$DST/swarm-report"
-   cp -R "$SRC/.claude/agents/." "$DST/.claude/agents/"
-   for s in plan build review debug design-cover visual-verify; do cp -R "$SRC/.claude/skills/$s" "$DST/.claude/skills/"; done
-   for h in test-gate visual-gate; do cp "$SRC/.claude/hooks/$h.sh" "$DST/.claude/hooks/" && chmod +x "$DST/.claude/hooks/$h.sh"; done
-   cp "$SRC/.claude/design-gate.json.example" "$DST/.claude/"
-   cp "$SRC/AGENTS.md" "$DST/AGENTS.md"
-   touch "$DST/swarm-report/.gitkeep"
-   ```
+## Step 3 — Merge, never clobber
 
-4. **Wire settings.json (merge, don't clobber).**
-   - If `DST/.claude/settings.json` is absent → copy `SRC/.claude/settings.json`.
-   - If present → merge both Stop hooks (`test-gate`, `visual-gate`) into the existing file
-     with `jq`, without dropping the user's other hooks. Dedupe by command string — a
-     re-run must not register the same hook twice. Verify the result is valid JSON.
+- **`.claude/settings.json`** — absent → copy. Present → merge with `jq`: for every hook
+  event in ours (`SessionStart`, `SubagentStart`, `SubagentStop`, `PreToolUse`, `Stop`)
+  add our entries, dedupe by `command`; union `permissions.deny`. Keep all their keys.
+  Verify the result parses (`jq . file`).
+- **`.mcp.json`** — absent → copy. Present → add `mcpServers."tavily-research"` only if
+  missing.
+- **`.env.example`** — absent → copy. Present → append `TAVILY_API_KEY=` if missing.
+  Never create or touch `.env`.
+- **`.gitignore`** — append each of our lines that is missing (`.claude/sessions/`,
+  `.claude/state/`, `.claude/worktrees/`, `.env`, `*.transcribe.json`, `.DS_Store`).
+  Append-only.
 
-4b. **Append the design-loop ignores** to `DST/.gitignore` (append-only, never rewrite):
-   `swarm-report/visual/` and `design-ref/**/*.png` if the user does not want reference
-   exports in git. Ask before adding the second one — some teams do commit them.
+## Step 4 — Seed an empty Memory Bank (never overwrite)
 
-5. **Seed the Memory Bank (never overwrite).**
-   - If `DST/.memory-bank/` does not exist → copy `SRC/.memory-bank/index.md` into it as a
-     starter template and tell the user to fill it in.
-   - If it exists → leave it untouched; the harness reads whatever is already there.
+`DST/.memory-bank/` absent → copy `SRC/.memory-bank/index.md` and the empty folders
+(`product-overview/`, `steerings/`, `tech-details/`, `tasks/` with `.gitkeep`). No
+`decisions.md` — it appears with the first decision. Present → leave it untouched.
 
-6. **Report.** List exactly what was written, note whether the Memory Bank was seeded or
-   left alone, and give the next step:
-   > Installed. Open `<DST>` in Claude Code and run `/plan "<your first feature>"`.
+## Step 5 — Report
+
+List exactly what was written / merged / skipped, then the next steps:
+1. `cp .env.example .env` and put the Tavily key in `.env` (for `/research`) — never in chat.
+2. Open `<DST>` in Claude Code, approve the `tavily-research` MCP server when asked.
+3. Fill `.memory-bank/index.md` (what, goal, stack) — or ask Claude to draft it from the repo.
+4. Add exec agents for the stack: `/new-agent <stack>`.
+5. Start: "день" + task, or `/plan "<first feature>"`.
 
 ## Notes
-- Idempotent: re-running overwrites the copied agents/skills/hook with the current version
-  but never touches `.memory-bank/` or the user's own settings hooks.
-- This skill only moves files. It runs no build and edits no user code.
+- Idempotent: re-running refreshes agents / skills / hooks / templates to the current
+  version, dedupes settings, never touches `.memory-bank/`, `.env`, or the user's own hooks.
+- The harness repo itself stays a clean template — `/setup` never writes back into `SRC`.

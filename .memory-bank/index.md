@@ -10,8 +10,10 @@
 
 ## Where to look
 
-- Architecture / modules → `./architecture.md`
+- What the product does, who it serves → `./product-overview/`
+- How to work here → `./steerings/` (`development-conventions.md`, `testing-conventions.md`)
+- Stack, architecture, module interactions → `./tech-details/`
+- Current and planned work → `./tasks/`
 - Decisions already made → `./decisions.md`
-- Open questions → `./open-questions.md`
 
-(Create these files as the project grows. Keep this index small — it is a table of contents, not a dump. If it gets bloated, ask the agent to reorganize it.)
+(Create these files as the project grows. Keep this index small — it is a table of contents, not a dump. If it gets bloated, ask the agent to reorganize it. Maintained by `/memory-bank` — see `.claude/skills/memory-bank/SKILL.md`.)

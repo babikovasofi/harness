@@ -6,3 +6,10 @@
 
 # Transcribe skill cache (raw STT + diarization output)
 *.transcribe.json
+
+# Local secrets (Tavily key for /research)
+.env
+
+# Night run marker and Claude Code worktrees (night mode)
+.claude/state/
+.claude/worktrees/
