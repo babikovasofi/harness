@@ -44,28 +44,34 @@ for s in "$SRC"/.claude/skills/*/; do
   rm -rf "$DST/.claude/skills/$n" && cp -R "$s" "$DST/.claude/skills/$n"
 done
 cp -R "$SRC"/.claude/hooks/. "$DST/.claude/hooks/"   && chmod +x "$DST"/.claude/hooks/*.sh
-cp "$SRC"/.claude/harness/*  "$DST/.claude/harness/"
+for f in "$SRC"/.claude/harness/*; do                           # quality.json: step 3 decides
+  [ "$(basename "$f")" = quality.json ] || cp "$f" "$DST/.claude/harness/"
+done
 cp "$SRC"/.claude/scripts/*  "$DST/.claude/scripts/" && chmod +x "$DST"/.claude/scripts/*.sh "$DST"/.claude/scripts/*.py
 chmod +x "$DST"/.claude/skills/transcribe/scripts/run.sh
 [ -f "$DST/swarm-report/.gitkeep" ] || touch "$DST/swarm-report/.gitkeep"
 ```
-`AGENTS.md` and `CLAUDE.md` — per the answers from step 1.
 
-## Step 3 — Merge, never clobber
+## Step 3 — Merge, never clobber (one script)
 
-- **`.claude/settings.json`** — absent → copy. Present → merge with `jq`: for every hook
-  event in ours (`SessionStart`, `UserPromptSubmit`, `SubagentStart`, `SubagentStop`,
-  `PreToolUse`, `PostToolUse`, `Stop`)
-  add our entries, dedupe by `command`; union `permissions.deny`. Keep all their keys.
-  Verify the result parses (`jq . file`).
-- **`.mcp.json`** — absent → copy. Present → add `mcpServers."tavily-research"` only if
-  missing.
-- **`.env.example`** — absent → copy. Present → append `TAVILY_API_KEY=` if missing.
-  Never create or touch `.env`.
-- **`.gitignore`** — append each of our lines that is missing (`.claude/sessions/`,
-  `.claude/state/`, `.claude/worktrees/`, `.env`, `*.transcribe.json`, `.DS_Store`,
-  `.ast-index-root`).
-  Append-only.
+```bash
+python3 "$SRC/.claude/scripts/setup-merge.py" "$SRC" "$DST" \
+  --agents-md <overwrite|append|skip from step 1> [--link-claude-md]
+```
+
+It prints one line per file. What it does:
+- `.claude/settings.json`: adds our hook entries per event (dedupe by command), unions
+  `permissions.deny`, sets `effortLevel` only if the project has none; keeps all their keys.
+- `.mcp.json`: adds `tavily-research` only if missing.
+- `.gitignore`: appends the missing harness lines. Append-only.
+- `.env.example`: creates it or appends `TAVILY_API_KEY=`. Never creates or reads `.env`.
+- `.claude/harness/quality.json`: copied only if absent, so tuned thresholds survive a re-run.
+- `AGENTS.md`: `overwrite` keeps the target's "Executing agents" registry rows, `append`
+  adds ours under a heading, `skip` leaves it.
+- `--link-claude-md`: puts `@AGENTS.md` on top of an existing `CLAUDE.md`.
+
+Use the script, not hand-written `echo >>`: the `guard.sh` hook blocks shell commands that
+mention `.env` or the Tavily key, so manual appends to `.gitignore` / `.env.example` fail.
 
 ## Step 4 — Seed an empty Memory Bank (never overwrite)
 
@@ -75,9 +81,9 @@ chmod +x "$DST"/.claude/skills/transcribe/scripts/run.sh
 
 ## Step 4a — Quality thresholds
 
-`.claude/harness/quality.json` is copied with the defaults (verify timeout 120 s, max 400
-lines per file, nesting 3, mutation score 60 %). Tell the user where it is; a project with
-several test suites sets `verify.command` there.
+`.claude/harness/quality.json` holds the defaults (verify timeout 120 s, max 400 lines per
+file, nesting 3, mutation score 60 %); step 3 copied it only if the project had none. Tell
+the user where it is; a project with several test suites sets `verify.command` there.
 
 ## Step 4b — Code index
 
@@ -96,5 +102,6 @@ List exactly what was written / merged / skipped, then the next steps:
 
 ## Notes
 - Idempotent: re-running refreshes agents / skills / hooks / templates to the current
-  version, dedupes settings, never touches `.memory-bank/`, `.env`, or the user's own hooks.
+  version, dedupes settings, keeps the exec-agent registry, `quality.json`, `.memory-bank/`,
+  `.env` and the user's own hooks.
 - The harness repo itself stays a clean template — `/setup` never writes back into `SRC`.

@@ -15,7 +15,7 @@ case "$P" in /*) exit 0 ;; esac            # explicit slash command: no routing 
 hint="$(P="$P" perl -CSDA -Mutf8 -e '
   my $p = $ENV{P}; utf8::decode($p) unless utf8::is_utf8($p);
   my @r = (
-    [ qr/работаем ночью|(?<![а-яё])ночь(?![а-яё])|\bnight\b/i,                      "/night" ],
+    [ qr/работаем ночью|поработай ночью|^\W*ночь(?![а-яё])|ночн\w* режим|режим ночь|оставл\w*(?: \w+)? на ночь|пока (я )?сплю|^\W*night\b|night mode/i, "/night" ],
     [ qr/стоп ноч|останови ноч|проснул|night-stop/i,                                   "/night-stop" ],
     [ qr/глубок\w* (ресеч|ресерч|research|исследован|поиск)|deep research|tavily|тавил|тевил|тэвил/i, "/research DEEP level (Tavily)" ],
     [ qr/ресеч|ресерч|research|исследу|найди (в интернете|информ\w*|инфу|всё|все)|поищи|погугли/i, "/research BASIC level (WebSearch, no Tavily)" ],

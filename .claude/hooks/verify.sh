@@ -17,6 +17,11 @@ STDIN="$(cat)"
 FILE="$(printf '%s' "$STDIN" | jq -r '.tool_input.file_path // .tool_input.notebook_path // empty')"
 SESSION="$(printf '%s' "$STDIN" | jq -r '.session_id // "nosession"')"
 [ -n "$FILE" ] && is_code_file "$FILE" || exit 0
+# Tests run in the checkout that holds the edited file (night worktree included); its own
+# quality.json wins. The session state file stays under the main project dir.
+STATE_ROOT="$ROOT"
+FROOT="$(repo_root_of "$FILE")" && [ -n "$FROOT" ] && ROOT="$FROOT" && QUALITY_FILE="$ROOT/.claude/harness/quality.json"
+[ -f "$QUALITY_FILE" ] || QUALITY_FILE="$STATE_ROOT/.claude/harness/quality.json"
 
 CMD="$(detect_test_cmd "$ROOT")"
 [ -n "$CMD" ] || exit 0
@@ -26,8 +31,8 @@ START=$(date +%s)
 OUT="$(cd "$ROOT" && run_timeout "$TO" "$CMD" 2>&1)"; RC=$?
 DUR=$(( $(date +%s) - START ))
 
-mkdir -p "$ROOT/.claude/sessions" 2>/dev/null || true
-STATE="$ROOT/.claude/sessions/${SESSION}.verify"
+mkdir -p "$STATE_ROOT/.claude/sessions" 2>/dev/null || true
+STATE="$STATE_ROOT/.claude/sessions/${SESSION}.verify"
 
 if [ "$RC" -eq 0 ]; then
   printf 'pass %s\n' "$(date +%s)" > "$STATE" 2>/dev/null || true
@@ -45,6 +50,6 @@ fi
 
 printf 'fail %s\n' "$(date +%s)" > "$STATE" 2>/dev/null || true
 TAIL="$(printf '%s\n' "$OUT" | tail -30)"
-jq -nc --arg r "Verify: tests FAIL after editing $FILE (\`$CMD\`, exit $RC). Fix the code (never weaken the test), then continue:
+jq -nc --arg r "Verify: tests FAIL after editing $FILE (\`$CMD\`, exit $RC). Writing a red test first on purpose (TDD, /debug repro)? Then this is expected — go on and make it green. Otherwise fix the code (never weaken the test):
 $TAIL" '{decision:"block", reason:$r}'
 exit 0

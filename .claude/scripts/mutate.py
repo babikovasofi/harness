@@ -11,7 +11,7 @@ Usage:
                             [--max 25] [--timeout 120] [--report swarm-report/mutation-x.md]
 Exit: 0 = score >= --min-score (or nothing to mutate), 1 = below, 2 = setup error.
 """
-import argparse, json, os, re, shutil, signal, subprocess, sys, time
+import argparse, json, os, re, shutil, signal, subprocess, sys, time, zlib
 from pathlib import Path
 
 CODE_EXT = {".py", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".go", ".rs", ".rb", ".java",
@@ -45,7 +45,16 @@ OPERATORS = [
     ("not x → x", r"\bnot\s+", ""),
 ]
 
-ROOT = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().parents[2])
+def _root():
+    # The checkout you run it in (a night worktree included), not $CLAUDE_PROJECT_DIR:
+    # that one may point at the main checkout while the edits live in the worktree.
+    top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    if top.returncode == 0 and top.stdout.strip():
+        return Path(top.stdout.strip())
+    return Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().parents[2])
+
+
+ROOT = _root()
 BACKUP = ROOT / ".claude/state/mutation-backup"
 
 
@@ -127,6 +136,11 @@ def main():
     ap.add_argument("--report")
     a = ap.parse_args()
 
+    if subprocess.run(["git", "rev-parse", "--verify", "--quiet", a.base], cwd=ROOT,
+                      capture_output=True).returncode != 0:
+        print(f"setup: base ref '{a.base}' not found (try --base master or --base HEAD).")
+        return 2
+
     leftover = restore_backups()
     if leftover:
         print(f"restored files from an interrupted run: {', '.join(leftover)}")
@@ -143,7 +157,8 @@ def main():
         print(f"nothing to mutate: no changed code lines vs {a.base} (tests excluded).")
         return 0
     # spread the budget across files and lines instead of taking the first N
-    candidates.sort(key=lambda m: (m["line"] * 7919 + hash(m["file"] + m["op"])) % 1000003)
+    # deterministic shuffle (str hash() is randomised per process)
+    candidates.sort(key=lambda m: zlib.crc32(f'{m["file"]}:{m["line"]}:{m["op"]}'.encode()))
     picked = candidates[: a.max]
 
     interrupted = {"flag": False}

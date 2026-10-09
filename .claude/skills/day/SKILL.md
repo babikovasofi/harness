@@ -29,6 +29,9 @@ option, note it ("решил сам: X, потому что Y; плюсы / ми
    commits; draft your best understanding; ask one form about the real gaps only. Clear →
    no questions.
 2. **Plan**: `/plan "<task>"` (planner + skeptic → `swarm-report/<slug>-plan.md`).
+   Trivial change (typo, one obvious line, rename in one file, a config value) → no
+   `/plan`, no Opus: say in one line what you will change and do it; Verify / lint hooks and
+   the end checkpoint still apply.
 3. **Checkpoint 2 — retell before /build**, short, plain, numbered:
    ```
    План: <feature>

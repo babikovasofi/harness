@@ -16,14 +16,22 @@ Small mutation-testing harness. Script: `.claude/scripts/mutate.py`; limits in
    `pyproject.toml`, Stryker `stryker.conf.*`, `go-mutesting`, PIT in Gradle/Maven) → run it
    on the changed files instead, same report shape. Otherwise use the script.
 2. **Test command**: `verify.command` from `quality.json`, else the one the Verify hook
-   detects (pytest / go test / npm test / gradlew test / make test).
-3. **Run** (base = branch point; night: `main`):
+   detects (pytest / go test / npm test / gradlew test / make test). No test command at all
+   → skip with one line ("no tests to mutate against — add a test command"), never fail the
+   review on it.
+3. **Base** = what this review covers. Uncommitted code changes exist (normal: day before
+   the commit, night before the task's commit) → `--base HEAD`, only the current task.
+   Otherwise the branch point: `--base "$(git merge-base HEAD main)"`.
+   **Run**:
    ```bash
-   python3 .claude/scripts/mutate.py --test-cmd "<cmd>" --base main \
+   python3 .claude/scripts/mutate.py --test-cmd "<cmd>" --base <base> \
      --max <max_mutants> --timeout <timeout_sec> --min-score <min_score> \
      --report swarm-report/<slug>-mutation.md
    ```
-   - Exit 2 = tests red before mutating → that is a `/debug` case, not a mutation result.
+   - Exit 2 = setup problem: tests red before mutating (→ `/debug`, not a mutation result)
+     or the base ref is missing (on `master` use `--base master`; to mutate only
+     uncommitted work use `--base HEAD`).
+   - Run it from the checkout that holds the change (at night: inside the worktree).
    - The script mutates only changed, non-test code lines and restores every file; a crash
      leftover is restored on the next run.
 4. **Read the report.** Every survivor = one missing test case: "`<file>:<line>` `>= → >`

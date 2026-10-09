@@ -38,5 +38,12 @@ run_timeout() {
   perl -e 'alarm shift; exec @ARGV' "$s" sh -c "$*"
 }
 
+# repo_root_of <file> — top of the git checkout that holds the file. A night run edits
+# files inside .claude/worktrees/<name>/, so tests must run there, not in $CLAUDE_PROJECT_DIR.
+repo_root_of() {
+  local d; d="$(cd "$(dirname "$1")" 2>/dev/null && pwd)" || return 1
+  git -C "$d" rev-parse --show-toplevel 2>/dev/null
+}
+
 # Harness template repo itself: quality hooks stay quiet there.
 is_harness_template() { [ -f "${ROOT:-.}/.claude/skills/setup/SKILL.md" ]; }

@@ -34,6 +34,8 @@ question point before the answer — none during the search.
 
 ## Basic level
 
+0. `WebSearch` / `WebFetch` may be deferred tools: load them first with
+   `ToolSearch` (`select:WebSearch,WebFetch`) in one call.
 1. Turn the topic into 2–4 precise queries (names, versions, year when freshness matters).
 2. `WebSearch` each query. Pick the strongest results: official docs, repos, primary
    sources over reposts.

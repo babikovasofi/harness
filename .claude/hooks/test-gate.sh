@@ -24,18 +24,13 @@ EDITED="$(jq -r 'select(.type=="assistant") | .message.content[]?
   | select(.type=="tool_use")
   | select(.name=="Edit" or .name=="Write" or .name=="MultiEdit")
   | .input.file_path // empty' "$TRANSCRIPT" 2>/dev/null || echo)"
-CODE_EDIT="$(printf '%s\n' "$EDITED" | grep -iE '\.(ts|tsx|js|jsx|py|dart|swift|kt|go|rb|java|tf)$' | head -1 || true)"
+. "$(dirname "$0")/lib/quality.sh"
+CODE_EDIT="$(printf '%s\n' "$EDITED" | while IFS= read -r f; do is_code_file "$f" && { echo "$f"; break; }; done || true)"
 [ -n "$CODE_EDIT" ] || exit 0
 
-# Resolve this project's test command from what's actually present.
-TEST_CMD=""; TEST_PAT=""
-if [ -f "$ROOT/pubspec.yaml" ]; then TEST_CMD="flutter test"; TEST_PAT="flutter test"
-elif [ -f "$ROOT/pyproject.toml" ]; then TEST_CMD="pytest (or uv run pytest)"; TEST_PAT="pytest"
-elif [ -f "$ROOT/go.mod" ]; then TEST_CMD="go test ./..."; TEST_PAT="go test"
-elif [ -f "$ROOT/build.gradle.kts" ] || [ -f "$ROOT/build.gradle" ]; then TEST_CMD="./gradlew test"; TEST_PAT="gradlew test"
-elif [ -f "$ROOT/package.json" ] && jq -e '.scripts.test // empty' "$ROOT/package.json" >/dev/null 2>&1; then TEST_CMD="npm test"; TEST_PAT="npm test|vitest|jest|node --test"
-elif [ -f "$ROOT/Makefile" ] && grep -qE '^test:' "$ROOT/Makefile" 2>/dev/null; then TEST_CMD="make test"; TEST_PAT="make test"
-fi
+# Resolve this project's test command — same detection as the Verify hook (lib/quality.sh).
+TEST_CMD="$(detect_test_cmd "$ROOT")"
+TEST_PAT="$(printf '%s' "$TEST_CMD" | awk '{print ($1=="python3"||$1=="uv") ? "pytest|unittest" : $1" "$2}')|pytest|unittest|go test|npm test|vitest|jest|gradlew|make test|cargo test|flutter test"
 [ -n "$TEST_CMD" ] || exit 0   # no known test command -> nothing to enforce
 
 # Was a test command actually run in a Bash tool call this session?

@@ -15,15 +15,25 @@ is_harness_template && exit 0
 
 FILE="$(jq -r '.tool_input.file_path // empty')"
 [ -n "$FILE" ] && [ -f "$FILE" ] && is_code_file "$FILE" || exit 0
+FROOT="$(repo_root_of "$FILE")" && [ -n "$FROOT" ] && ROOT="$FROOT" \
+  && [ -f "$ROOT/.claude/harness/quality.json" ] && QUALITY_FILE="$ROOT/.claude/harness/quality.json"
 REL="${FILE#"$ROOT"/}"
 
-# lint.ignore globs (bash extglob-free match: ** → *)
+# lint.ignore: the project list if the key exists, else built-in defaults, so a partial
+# quality.json does not drop them. (A function: bash 3.2 mis-parses quotes inside <(...).)
+ignore_globs() {
+  if jq -e '.lint | has("ignore")' "$QUALITY_FILE" >/dev/null 2>&1; then
+    jq -r '.lint.ignore[]' "$QUALITY_FILE"
+  else
+    printf '%s\n' '**/migrations/**' '**/generated/**' '**/vendor/**' '**/node_modules/**' '**/*.lock' '**/*.min.js'
+  fi
+}
 while IFS= read -r g; do
   [ -z "$g" ] && continue
   pat="${g//\*\*/*}"
-  # shellcheck disable=SC2053
-  [[ "$REL" == $pat ]] && exit 0
-done < <(jq -r '.lint.ignore[]? // empty' "$QUALITY_FILE" 2>/dev/null)
+  # "/$REL" lets "*/migrations/*" also match a top-level migrations/ dir
+  [[ "$REL" == $pat || "/$REL" == $pat ]] && exit 0
+done < <(ignore_globs)
 
 ISSUES=""
 if command -v python3 >/dev/null 2>&1; then

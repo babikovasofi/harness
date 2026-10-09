@@ -18,8 +18,10 @@ except OSError:
     sys.exit(0)
 
 issues = []
-if len(lines) > max_lines:
-    issues.append(f"file has {len(lines)} lines (max {max_lines}): split it by responsibility")
+is_test = bool(re.search(r"(^|/)(tests?|__tests__|spec)/|(_test|\.test|\.spec|_spec|Test)\.\w+$|(^|/)test_[^/]*$", path))
+limit = max_lines * 2 if is_test else max_lines
+if len(lines) > limit:
+    issues.append(f"file has {len(lines)} lines (max {limit}{' for tests' if is_test else ''}): split it by responsibility")
 
 CONTROL = re.compile(r"^\s*(?:\}\s*)?(?:if|elif|else\s+if|for|foreach|while|switch|match|try|catch|except|when|guard)\b")
 COMMENT = re.compile(r"^\s*(#|//|/\*|\*)")

@@ -4,7 +4,7 @@ A drop-in `.claude/` layout that gives any Claude Code / Codex project a determi
 development loop: **/plan → /build → /review → /debug**.
 
 It is *files*, not a CLI. There is no `harness do "build X"`. Install it into a project with
-`/setup` (run from the harness repo), then use your normal agent CLI; the harness activates
+`/setup` (run from the harness repo; merging is done by `.claude/scripts/setup-merge.py`), then use your normal agent CLI; the harness activates
 through skills, subagents and hooks.
 
 ## The loop
