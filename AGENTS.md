@@ -22,9 +22,12 @@ test-gate hook** blocks "done" until the project's tests actually run and their 
 cited — testing after every feature is enforced, not optional.
 
 Around the loop:
-- `/research "<topic>"` — deep Tavily search, numbered findings with source links, report in
-  `swarm-report/research-<slug>-<date>.md` that `/plan` can read. Tavily key lives only in
-  `.env` (see `.env.example`), never in chat.
+- `/research "<topic>"` — two levels. **Basic** by default («ресеч», «найди в интернете»):
+  built-in WebSearch / WebFetch, 2–4 queries, numbered findings with links, no Tavily.
+  **Deep** only when the user says «глубокий ресерч» / «Tavily»: Tavily MCP, every claim
+  checked, report in `swarm-report/research-<slug>-<date>.md` that `/plan` can read. Never
+  upgrade to deep on your own. Tavily key lives only in `.env` (see `.env.example`).
+- `/mutation [slug]` — mutation testing of the changed lines; runs inside every `/review`.
 - `/new-agent <stack>` — onboard a stack-specific executing agent (see "Agents").
 - `/memory-bank` (Steward), `/memory-bank-defrag` — keep `.memory-bank/` current.
 - `/transcribe <file>` — local meeting transcript with speaker labels.
@@ -42,8 +45,10 @@ on every prompt and names the likely skill when the words clearly match.
 | «ночь», «работаем ночью», «пока я сплю» | `/night` |
 | «стоп ночь», «я проснулась», «что сделал за ночь» | `/night-stop` |
 | «не работает», «ошибка», «упал тест», a stack trace | `/debug` |
-| «проверь код», «ревью», «готово к мержу?» | `/review` |
-| «ресеч», «исследуй», «найди информацию про», «сравни» | `/research` |
+| «проверь код», «ревью», «готово к мержу?» | `/review` (includes `/mutation`) |
+| «проверь тесты», «мутационное тестирование» | `/mutation` |
+| «ресеч», «найди в интернете», «поищи», «сравни» | `/research` basic (WebSearch, no Tavily) |
+| «глубокий ресерч», «с Tavily», «deep research» | `/research` deep (Tavily) |
 | An audio / video file, «расшифруй запись» | `/transcribe` |
 | «агент под <стек>», unowned files, a new manifest in the repo | `/new-agent` |
 | «почисти memory bank», end of every night | `/memory-bank-defrag` |
@@ -162,6 +167,26 @@ CAVEMAN MODE ACTIVE (full). Respond terse like smart caveman. All technical subs
 Drop articles, filler, pleasantries, hedging. Fragments OK. Technical terms, code, paths, errors exact. Code, commits, PRs: write normal.
 ```
 
+## Tests
+
+Tests are cheap now and they are the agent's only objective signal that it broke something.
+Every feature is covered; four layers make sure the tests are real:
+
+1. **Design (Opus 5.5).** The planner writes concrete `test_cases` into the plan: given /
+   when / then, boundaries, error paths, the bug each one catches.
+2. **Write (Sonnet 5.5).** Exec agents implement every test case in their scope as given
+   (`test_cases_written` in the contract); the reviewer checks none is missing.
+3. **Verify after every edit.** `verify.sh` (PostToolUse) runs the project's tests after each
+   code edit; red → the failure goes straight back to the agent. `lint-gate.sh` checks the
+   file the same moment: length, nesting, one-letter names, the project's linter.
+4. **Test the tests.** `/mutation` mutates the changed lines (`+ → -`, `>= → >` …) inside
+   every `/review`; a surviving mutant is a missing test case, score below `min_score` →
+   `rework`.
+
+Thresholds and the test command: `.claude/harness/quality.json` (`verify.command`,
+`verify.timeout_sec`, `lint.max_file_lines`, `lint.max_nesting`, `lint.ignore`,
+`mutation.min_score`). Turn a hook off for one session: `HARNESS_VERIFY=0` / `HARNESS_LINT=0`.
+
 ## Code index
 
 Agents search code through `ast-index`, not by reading files in a row
@@ -180,7 +205,9 @@ Order: `ast-index` → read only what it points to → Grep only for literals / 
 | PreToolUse (Bash) | `guard.sh` | Blocks commands touching `.env`, printing the Tavily key, any force-push; at night any push except `memory-defrag/*` and PR merges |
 | UserPromptSubmit | `prompt-router.sh` | Every prompt: always-on writing rules + intent → skill map, "likely skill" hint |
 | PreToolUse (Bash), planner + skeptic only | `readonly-bash.sh` | Bash limited to `ast-index`, read-only git and readers |
-| Stop | `test-gate.sh` | Code edited but no tests run → not done |
+| PostToolUse (Edit / Write) | `verify.sh` | Runs the tests after every code edit; red → failure tail back to the agent |
+| PostToolUse (Edit / Write) | `lint-gate.sh` | File length, nesting, one-letter names, project linter; issues → back to the agent |
+| Stop | `test-gate.sh` | Code edited but no tests run (by Bash or by Verify) → not done |
 | Stop | `slop-gate.sh` | Answer with ≥ 2 AI-text markers (outside code and quotes) → one rewrite |
 
 Plus `permissions.deny: Read(.env)` so file tools cannot read secrets.

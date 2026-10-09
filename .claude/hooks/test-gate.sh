@@ -44,6 +44,8 @@ RAN="$(jq -r 'select(.type=="assistant") | .message.content[]?
   | .input.command // empty' "$TRANSCRIPT" 2>/dev/null | grep -ciE "$TEST_PAT" || true)"
 RAN="${RAN:-0}"
 [ "$RAN" -gt 0 ] && exit 0
+# The Verify hook (verify.sh) already ran the suite green after the last code edit.
+grep -q '^pass ' "$ROOT/.claude/sessions/${SESSION_ID}.verify" 2>/dev/null && exit 0
 
 # Loop-safe cap: <=2 blocks at the same HEAD.
 SESS_DIR="$ROOT/.claude/sessions"; mkdir -p "$SESS_DIR" 2>/dev/null || exit 0

@@ -43,6 +43,9 @@ contract), the SubagentStop hook rejects a return without the contract YAML.
    ! grep -q '{{' "$f"                                   # no unfilled placeholders
    ```
    Any check fails → fix, re-run.
+5b. **Verify command.** The Verify hook and `/mutation` run one test command per project
+   (`verify.command` in `.claude/harness/quality.json`, else auto-detect). Several stacks
+   in one repo → set `verify.command` to one command that runs them all (e.g. `make test`).
 6. **Register** — add one row to the "Executing agents" table in `AGENTS.md`:
    `| <name> | <scope globs> | \`<test_command>\` | <signal files> |`. Remove the
    "_none yet_" row if it is still there.

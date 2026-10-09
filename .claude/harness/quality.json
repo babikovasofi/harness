@@ -1,0 +1,20 @@
+{
+  "verify": {
+    "enabled": true,
+    "command": "",
+    "timeout_sec": 120
+  },
+  "lint": {
+    "enabled": true,
+    "max_file_lines": 400,
+    "max_nesting": 3,
+    "short_names_allowed": ["i", "j", "k", "n", "x", "y", "z", "e", "_", "id", "ok", "db", "io"],
+    "run_project_linter": true,
+    "ignore": ["**/migrations/**", "**/generated/**", "**/vendor/**", "**/node_modules/**", "**/*.lock", "**/*.min.js"]
+  },
+  "mutation": {
+    "max_mutants": 25,
+    "min_score": 0.6,
+    "timeout_sec": 120
+  }
+}

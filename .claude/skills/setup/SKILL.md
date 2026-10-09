@@ -43,9 +43,9 @@ for s in "$SRC"/.claude/skills/*/; do
   n=$(basename "$s"); [ "$n" = setup ] && continue              # target never re-installs
   rm -rf "$DST/.claude/skills/$n" && cp -R "$s" "$DST/.claude/skills/$n"
 done
-cp "$SRC"/.claude/hooks/*.sh "$DST/.claude/hooks/"   && chmod +x "$DST"/.claude/hooks/*.sh
+cp -R "$SRC"/.claude/hooks/. "$DST/.claude/hooks/"   && chmod +x "$DST"/.claude/hooks/*.sh
 cp "$SRC"/.claude/harness/*  "$DST/.claude/harness/"
-cp "$SRC"/.claude/scripts/*  "$DST/.claude/scripts/" && chmod +x "$DST"/.claude/scripts/*.sh
+cp "$SRC"/.claude/scripts/*  "$DST/.claude/scripts/" && chmod +x "$DST"/.claude/scripts/*.sh "$DST"/.claude/scripts/*.py
 chmod +x "$DST"/.claude/skills/transcribe/scripts/run.sh
 [ -f "$DST/swarm-report/.gitkeep" ] || touch "$DST/swarm-report/.gitkeep"
 ```
@@ -55,7 +55,7 @@ chmod +x "$DST"/.claude/skills/transcribe/scripts/run.sh
 
 - **`.claude/settings.json`** — absent → copy. Present → merge with `jq`: for every hook
   event in ours (`SessionStart`, `UserPromptSubmit`, `SubagentStart`, `SubagentStop`,
-  `PreToolUse`, `Stop`)
+  `PreToolUse`, `PostToolUse`, `Stop`)
   add our entries, dedupe by `command`; union `permissions.deny`. Keep all their keys.
   Verify the result parses (`jq . file`).
 - **`.mcp.json`** — absent → copy. Present → add `mcpServers."tavily-research"` only if
@@ -72,6 +72,12 @@ chmod +x "$DST"/.claude/skills/transcribe/scripts/run.sh
 `DST/.memory-bank/` absent → copy `SRC/.memory-bank/index.md` and the empty folders
 (`product-overview/`, `steerings/`, `tech-details/`, `tasks/` with `.gitkeep`). No
 `decisions.md` — it appears with the first decision. Present → leave it untouched.
+
+## Step 4a — Quality thresholds
+
+`.claude/harness/quality.json` is copied with the defaults (verify timeout 120 s, max 400
+lines per file, nesting 3, mutation score 60 %). Tell the user where it is; a project with
+several test suites sets `verify.command` there.
 
 ## Step 4b — Code index
 

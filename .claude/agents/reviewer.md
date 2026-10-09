@@ -24,6 +24,8 @@ One line per finding: `path:line — SEVERITY: problem. fix.`
 - Does the code meet every `acceptance_criteria` in the plan? Name any that are unmet.
 - Does the code do what the plan said? Did anything from `out_of_scope` sneak in?
 - Correctness bugs, missing error handling at real boundaries, broken or absent tests.
+- Every plan test case in scope exists in the diff with the same given / when / then;
+  missing → HIGH.
 - Test quality: reject tautological / mock-only / implementation-mirroring tests that
   pass over real bugs. Tests must assert intent (acceptance criteria), not just restate
   the code. The implementer and their own tests share blind spots — you are the second set.

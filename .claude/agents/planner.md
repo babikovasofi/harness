@@ -47,8 +47,13 @@ unowned_files:            # files no registered exec agent covers → orchestrat
   - <path>
 steps:
   - <ordered, concrete step>
-tests:
-  - <what to test, how>
+test_cases:               # you design the tests; the exec agent (Sonnet) writes them verbatim
+  - name: <test_function_name>
+    level: unit | integration | e2e
+    given: <input / state>
+    when: <action>
+    then: <exact expected result>
+    why: <the bug it catches: boundary, wrong operator, empty input, error path ...>
 risks:
   - <risk + why it matters>
 assumptions:
@@ -56,6 +61,11 @@ assumptions:
 out_of_scope:
   - <explicitly not doing in this feature>
 ```
+
+Test cases: one per acceptance criterion at least, plus boundaries (0, 1, empty, max, the
+value right at a threshold), error paths and one negative case per branch. Write `then` so a
+mutated operator would fail it (`is_adult(18) is True` and `is_adult(17) is False`, not
+"returns a bool").
 
 No prose outside the YAML. If the feature is under-specified, say so in `assumptions`
 and plan the most likely interpretation — do not stall.

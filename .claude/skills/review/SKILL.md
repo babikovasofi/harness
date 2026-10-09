@@ -22,7 +22,11 @@ ORCHESTRATOR. One reviewer subagent. Read-only — the reviewer does not fix.
    > <paste git diff here>
 
    Paste the diff INTO the prompt — the reviewer must not re-read the whole repo.
-3. **Report** the reviewer's verdict + findings verbatim.
-4. If `verdict: rework` — the findings ARE the input to a `/build <slug>` retry. Do not
+3. **Mutation check** — run `/mutation <slug>` on the changed code. Every surviving
+   mutant is added as a finding: `<file>:<line> — MED: tests miss <op>. Add test case
+   <given/when/then>.` Score below `min_score` (`.claude/harness/quality.json`) → verdict
+   `rework` even if the reviewer said `ship`.
+4. **Report** the reviewer's verdict + findings + mutation score verbatim.
+5. If `verdict: rework` — the findings ARE the input to a `/build <slug>` retry. Do not
    auto-fix here; in day mode the user decides at the end checkpoint (options with
    плюсы / минусы), at night the rails decide.

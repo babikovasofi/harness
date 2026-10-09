@@ -36,7 +36,8 @@ and merge their output. No code edits here.
    # Plan: <feature>   (slug: <slug>)
    ## TL;DR
    ## Acceptance criteria  — observable "done" conditions; /review checks these
-   ## Plan                 — merged steps + affected files (with owner agent) + tests
+   ## Plan                 — merged steps + affected files (with owner agent)
+   ## Test cases           — planner's given / when / then list; exec agents write them as is
    ## Blockers             — skeptic HIGH not yet resolved, unowned files (human decides)
    ## Out of scope
    ## Assumptions
