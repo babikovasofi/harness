@@ -21,6 +21,28 @@ $(head -c 4000 "$ROOT/.memory-bank/index.md")"
 Decisions already made live in .memory-bank/decisions.md — read it before asking the user anything."
 fi
 
+# Code index (ast-index): refresh in the background, never block the session start.
+if [ ! -f "$ROOT/.claude/skills/setup/SKILL.md" ]; then
+  if command -v ast-index >/dev/null 2>&1; then
+    # `stats` exits 0 either way; an existing index prints its DB path.
+    if (cd "$ROOT" && ast-index stats 2>/dev/null | grep -q 'DB path:'); then
+      (cd "$ROOT" && nohup ast-index update >/dev/null 2>&1 &)
+      CTX="$CTX
+
+Code index: ast-index is ready (incremental update running in background). Search code with it first — .claude/harness/code-index.md."
+    else
+      (cd "$ROOT" && nohup ast-index rebuild >/dev/null 2>&1 &)
+      CTX="$CTX
+
+Code index: first ast-index rebuild started in background; until it finishes, fall back to Grep/Glob. Usage: .claude/harness/code-index.md."
+    fi
+  else
+    CTX="$CTX
+
+Code index: ast-index is not installed — use Grep/Glob; at the next checkpoint offer the user: brew tap defendend/ast-index && brew install ast-index."
+  fi
+fi
+
 MARK="$ROOT/.claude/state/night.active"
 if [ -f "$MARK" ] && [ "$SOURCE" != "startup" ]; then
   CTX="$CTX

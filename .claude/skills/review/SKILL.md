@@ -15,6 +15,8 @@ ORCHESTRATOR. One reviewer subagent. Read-only — the reviewer does not fix.
 1. **Gather**: plan `swarm-report/<slug>-plan.md` + build report `swarm-report/<slug>-build.md`
    + the diff (`git diff` for staged + unstaged, or vs the branch point).
 2. **Spawn 1 reviewer** (`Agent`, `subagent_type: reviewer`). Prompt:
+   > CAVEMAN MODE ACTIVE (full). Respond terse like smart caveman. All technical substance stay. Only fluff die.
+   > Drop articles, filler, pleasantries, hedging. Fragments OK. Technical terms, code, paths, errors exact. Code, commits, PRs: write normal.
    > Plan: swarm-report/<slug>-plan.md
    > Diff below:
    > <paste git diff here>

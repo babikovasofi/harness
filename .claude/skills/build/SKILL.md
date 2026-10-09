@@ -22,10 +22,13 @@ main loop. No questions to the user mid-build (see "Questions" in `AGENTS.md`).
    chose `general-purpose` at the checkpoint) → `general-purpose`.
 4. **Spawn the exec agents** — one `Agent` call each, in parallel when the feature spans
    several layers (single message, N calls, `subagent_type: <owner agent name>`). Prompt:
+   > CAVEMAN MODE ACTIVE (full). Respond terse like smart caveman. All technical substance stay. Only fluff die.
+   > Drop articles, filler, pleasantries, hedging. Fragments OK. Technical terms, code, paths, errors exact. Code, commits, PRs: write normal.
    > Plan: swarm-report/<slug>-plan.md. Your scope: <the files for this agent>.
 
    The SubagentStart hook injects the harness greeting + exec contract; the SubagentStop
-   hook rejects a return without the contract YAML. For `general-purpose` add to the
+   hook rejects a return without the contract YAML. Exec agents run on Sonnet 5.5 from their
+   frontmatter; a `general-purpose` fallback gets `model: "sonnet"` in the call. For `general-purpose` add to the
    prompt: "Follow `.claude/harness/exec-contract.md` and return its YAML."
    If one agent's output changes a contract another needs (`cross_layer_notes`), pass that
    note into the dependent agent's prompt — or run the provider first, then the consumer.

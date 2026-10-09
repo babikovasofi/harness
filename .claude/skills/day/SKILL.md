@@ -43,6 +43,8 @@ option, note it ("решил сам: X, потому что Y; плюсы / ми
    минусы).
 4. **User edits** (anything the user writes about the plan):
    - Spawn the `skeptic` subagent on the edited plan:
+     > CAVEMAN MODE ACTIVE (full). Respond terse like smart caveman. All technical substance stay. Only fluff die.
+     > Drop articles, filler, pleasantries, hedging. Fragments OK. Technical terms, code, paths, errors exact. Code, commits, PRs: write normal.
      > Plan: swarm-report/<slug>-plan.md. User edits: <verbatim>.
    - Apply HIGH/MED fixes, update `swarm-report/<slug>-plan.md`, list unresolved under
      Blockers.

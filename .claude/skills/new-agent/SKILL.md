@@ -37,6 +37,9 @@ contract), the SubagentStop hook rejects a return without the contract YAML.
    grep -qE '^name: <name>$' "$f"                        # name matches file name
    grep -qE '^description: .+' "$f"                      # description present
    grep -q 'harness:exec' "$f"                           # exec marker present
+   grep -q '^CAVEMAN MODE ACTIVE (full)' "$f"            # caveman lines right after frontmatter
+   grep -qx 'model: claude-sonnet-5-5' "$f"              # exec agents build on Sonnet 5.5
+   grep -qx 'effort: medium' "$f"                        # effort always medium
    ! grep -q '{{' "$f"                                   # no unfilled placeholders
    ```
    Any check fails → fix, re-run.

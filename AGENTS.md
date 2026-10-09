@@ -103,12 +103,30 @@ with `subagent_type: <name>`. Orchestration (`/plan`, `/build`, `/day`, `/night`
 runs in the main session: subagents cannot spawn subagents by default.
 
 ### Consilium (plan + review + debug — diagnose, don't bulk-edit)
-| Agent    | Tools                         | Used by                   |
-|----------|-------------------------------|---------------------------|
-| planner  | Read, Grep, Glob              | `/plan`                   |
-| skeptic  | Read, Grep, Glob              | `/plan`, `/day`, `/night` |
-| reviewer | Read, Grep, Glob, Bash        | `/review`                 |
-| debugger | all                           | `/debug`                  |
+| Agent    | Model             | Tools                                   | Used by                   |
+|----------|-------------------|-----------------------------------------|---------------------------|
+| planner  | `claude-opus-5-5`  | Read, Grep, Glob, Bash (read-only hook) | `/plan`                   |
+| skeptic  | `claude-opus-5-5`  | Read, Grep, Glob, Bash (read-only hook) | `/plan`, `/day`, `/night` |
+| reviewer | `claude-haiku-5-5` | Read, Grep, Glob, Bash                  | `/review`                 |
+| debugger | `claude-haiku-5-5` | all                                     | `/debug`                  |
+
+Planner and skeptic get Bash only for the code index and read-only git: the
+`readonly-bash.sh` hook in their frontmatter blocks everything else.
+
+### Models and effort
+Fixed per stage, set in each agent's frontmatter (`model:`, `effort:`). Effort is always
+`medium`: every agent has `effort: medium`, and `.claude/settings.json` sets
+`"effortLevel": "medium"` for the main session.
+
+| Stage | Who | Model |
+|-------|-----|-------|
+| Plan, critique | planner, skeptic | Opus 5.5 — `claude-opus-5-5` |
+| Build | every exec agent (template default), `general-purpose` fallback in `/build` (`model: sonnet`) | Sonnet 5.5 — `claude-sonnet-5-5` |
+| Review, debug, helpers | reviewer, debugger, ad-hoc `Explore` / `general-purpose` helpers (`model: haiku`) | Haiku 5.5 — `claude-haiku-5-5` |
+| Orchestration | main session (`/day`, `/night`, `/plan` merge) | the session's model, picked by the user |
+
+Ad-hoc spawns through the `Agent` tool take the alias: `model: "sonnet"` for code
+writing, `model: "haiku"` for search and checks. Never leave it to inherit Opus.
 
 ### Executing agents (write code — matched by file scope)
 `/plan` maps every affected file to the agent whose scope covers it; `/build` spawns those
@@ -132,15 +150,36 @@ A file no agent covers → `/plan` lists it under Blockers; the user picks `/new
 - Template: `.claude/harness/exec-agent-template.md`. Spawn prompts stay short — the hook
   carries the shared rules.
 
+### Caveman activation
+These two lines, verbatim, go:
+1. at the very start of every agent declaration (`.claude/agents/*.md`, first lines after
+   the frontmatter; the exec template already has them), and
+2. at the very start of **every** subagent prompt you send — skills, `/day`, `/night`,
+   ad-hoc spawns, `Explore`, `general-purpose`, any workflow. No exceptions.
+
+```
+CAVEMAN MODE ACTIVE (full). Respond terse like smart caveman. All technical substance stay. Only fluff die.
+Drop articles, filler, pleasantries, hedging. Fragments OK. Technical terms, code, paths, errors exact. Code, commits, PRs: write normal.
+```
+
+## Code index
+
+Agents search code through `ast-index`, not by reading files in a row
+(`.claude/harness/code-index.md`). The SessionStart hook keeps the index fresh: first
+session → `ast-index rebuild` in the background, every next one → `ast-index update`. Not
+installed → Grep/Glob, and the user gets the install line at the next checkpoint.
+Order: `ast-index` → read only what it points to → Grep only for literals / regex / comments.
+
 ## Hooks (`.claude/settings.json`)
 
 | Event | Script | Does |
 |-------|--------|------|
-| SessionStart | `session-context.sh` | Puts `.memory-bank/index.md` into context; during a night run reminds to re-read brief, log, rails after compaction |
+| SessionStart | `session-context.sh` | Puts `.memory-bank/index.md` into context; starts `ast-index rebuild` / `update` in the background; during a night run reminds to re-read brief, log, rails after compaction |
 | SubagentStart | `subagent-greeting.sh` | Greeting + exec contract (see Onboarding) |
 | SubagentStop | `exec-return-check.sh` | Exec agents must return the contract YAML |
 | PreToolUse (Bash) | `guard.sh` | Blocks commands touching `.env`, printing the Tavily key, any force-push; at night any push except `memory-defrag/*` and PR merges |
 | UserPromptSubmit | `prompt-router.sh` | Every prompt: always-on writing rules + intent → skill map, "likely skill" hint |
+| PreToolUse (Bash), planner + skeptic only | `readonly-bash.sh` | Bash limited to `ast-index`, read-only git and readers |
 | Stop | `test-gate.sh` | Code edited but no tests run → not done |
 | Stop | `slop-gate.sh` | Answer with ≥ 2 AI-text markers (outside code and quotes) → one rewrite |
 
@@ -201,10 +240,10 @@ Plus `permissions.deny: Read(.env)` so file tools cannot read secrets.
     skill + `references/code-text.md`.
   - Not prose: identifiers, YAML agent returns, raw logs.
   - The Stop hook `slop-gate.sh` sends an answer with AI markers back for one rewrite.
-- **Caveman always.** Every agent and every subagent answers in `/caveman` (full): drop
-  articles / filler / pleasantries / hedging, fragments OK, keep every technical fact
-  exact. Subagents get the rule from the SubagentStart greeting. Code, commits, PRs:
-  written normally.
+- **Caveman always.** Every agent and every subagent answers in `/caveman` (full) — terse
+  output, fewer tokens. Three layers, so one failing does not matter: the activation lines
+  open every agent declaration, open every spawn prompt, and the SubagentStart greeting
+  repeats them. See "Caveman activation".
 - **Harness template stays clean.** In the harness source repo (it has
   `.claude/skills/setup/`) never write project facts to `.memory-bank/`, decisions to
   `decisions.md`, or reports to `swarm-report/` — it must stay an empty template, ready

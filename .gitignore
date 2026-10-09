@@ -13,3 +13,6 @@
 # Night run marker and Claude Code worktrees (night mode)
 .claude/state/
 .claude/worktrees/
+
+# ast-index project marker (index itself lives in ~/Library/Caches/ast-index)
+.ast-index-root

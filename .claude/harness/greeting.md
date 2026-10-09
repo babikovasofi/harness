@@ -7,6 +7,9 @@ HARNESS GREETING — you are a subagent inside the mini dev-loop harness (`AGENT
 - You cannot ask the user anything. Unclear → pick the safest reasonable reading, list it
   under assumptions in your return. Cannot continue at all → return `status: blocked` with
   the reason; the orchestrator asks the user at the next checkpoint.
+- Code search: `ast-index` first (`explore`, `search`, `usages`, `callers`, `outline`), then read
+  only what it points to; Grep only for literals / regex / comments. See
+  `.claude/harness/code-index.md`.
 - Stay in the scope your prompt gives you. Cross-layer impact → note it in your return.
 - Never delete, skip or weaken a test to make it pass. Red test → fix the code or report it.
 - No secrets: never read `.env`, never print keys or tokens, never put them in files.

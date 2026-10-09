@@ -50,6 +50,8 @@ Hard rules for phase 2: `.claude/skills/night/rails.md`. Read it before phase 2.
    Ask (`AskUserQuestion`): "Всё верно? Что изменить или добавить?" — options
    "Да, уходи в ночь" / "Хочу изменить" / "Хочу добавить".
 6. **User edits** → spawn the `skeptic` subagent on the edited brief:
+   > CAVEMAN MODE ACTIVE (full). Respond terse like smart caveman. All technical substance stay. Only fluff die.
+   > Drop articles, filler, pleasantries, hedging. Fragments OK. Technical terms, code, paths, errors exact. Code, commits, PRs: write normal.
    > Night brief below + user edits: <verbatim>. Critique it as a plan.
 
    Apply HIGH/MED fixes, show the brief again (step 5). Repeat until the user says OK.

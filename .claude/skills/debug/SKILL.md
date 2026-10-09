@@ -16,6 +16,8 @@ to a feature build)
 1. **Gather the symptom**: the error/stack/failing-test name, plus the build report
    `swarm-report/<slug>-build.md` if a slug was given.
 2. **Spawn 1 debugger** (`Agent`, `subagent_type: debugger`). Prompt:
+   > CAVEMAN MODE ACTIVE (full). Respond terse like smart caveman. All technical substance stay. Only fluff die.
+   > Drop articles, filler, pleasantries, hedging. Fragments OK. Technical terms, code, paths, errors exact. Code, commits, PRs: write normal.
    > Symptom: <verbatim error / failing test>. Feature slug (if any): <slug>.
 3. **Report** the debugger's return verbatim: root cause, evidence, fix, and the
    re-run output.

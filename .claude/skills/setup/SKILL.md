@@ -29,7 +29,9 @@ no build, no user code edits.
      `@AGENTS.md` at its top? (Claude Code reads only `CLAUDE.md` when both exist.)
    - `DST/.claude/agents/<name>.md` exists with the same name as ours → overwrite / skip.
 3. Dependencies (warn, do not block): `jq` (hooks), `git`, `gh` (night defrag PR),
-   `node`/`npx` (Tavily MCP), Python 3.11–3.13 + `ffmpeg` (transcribe).
+   `node`/`npx` (Tavily MCP), `ast-index` (code index:
+   `brew tap defendend/ast-index && brew install ast-index`), Python 3.11–3.13 + `ffmpeg`
+   (transcribe).
 
 ## Step 2 — Copy
 
@@ -61,7 +63,8 @@ chmod +x "$DST"/.claude/skills/transcribe/scripts/run.sh
 - **`.env.example`** — absent → copy. Present → append `TAVILY_API_KEY=` if missing.
   Never create or touch `.env`.
 - **`.gitignore`** — append each of our lines that is missing (`.claude/sessions/`,
-  `.claude/state/`, `.claude/worktrees/`, `.env`, `*.transcribe.json`, `.DS_Store`).
+  `.claude/state/`, `.claude/worktrees/`, `.env`, `*.transcribe.json`, `.DS_Store`,
+  `.ast-index-root`).
   Append-only.
 
 ## Step 4 — Seed an empty Memory Bank (never overwrite)
@@ -69,6 +72,12 @@ chmod +x "$DST"/.claude/skills/transcribe/scripts/run.sh
 `DST/.memory-bank/` absent → copy `SRC/.memory-bank/index.md` and the empty folders
 (`product-overview/`, `steerings/`, `tech-details/`, `tasks/` with `.gitkeep`). No
 `decisions.md` — it appears with the first decision. Present → leave it untouched.
+
+## Step 4b — Code index
+
+`ast-index` installed → `(cd "$DST" && ast-index rebuild)` once, report the `ast-index stats`
+line. Not installed → say how to install; the SessionStart hook builds the index on the
+first session after that.
 
 ## Step 5 — Report
 
